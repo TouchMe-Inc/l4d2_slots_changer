@@ -2,29 +2,29 @@
 {
 	"TAG"
 	{
-		"en"			"<{green}Slots Changer{default}> "
+		"ru"			"<{green}Slots Changer{default}> "
 	}
 
 	"INVALID_TEAM"
 	{
-		"en"			"{olive}Spectators{default} cannot start voting"
+		"ru"			"{olive}Зрители{default} не могут начать голосование"
 	}
 
 	"INVALID_ARGS"
 	{
-		"en"			"Attention! Use {olive}!slots <number>"
+		"ru"			"Внимание! Используйте {olive}!slots <number>"
 	}
 
 	"SLOT_OUT_OF_BOUND"
 	{
 		"#format"		"{1:d}"
-		"en"			"The number of slots cannot be greater than {1}"
+		"ru"			"Количество слотов не может быть больше {1}"
 	}
 
 	"SLOT_LESS_THAN_NECESSARY"
 	{
 		"#format"		"{1:d}"
-		"en"			"The number of slots cannot be less than {1}"
+		"ru"			"Количество слотов не может быть меньше {1}"
 	}
 
 	"MENU_TITLE"
