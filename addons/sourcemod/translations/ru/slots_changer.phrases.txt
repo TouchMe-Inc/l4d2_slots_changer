@@ -1,0 +1,68 @@
+"Phrases"
+{
+	"TAG"
+	{
+		"en"			"<{green}Slots Changer{default}> "
+	}
+
+	"INVALID_TEAM"
+	{
+		"en"			"{olive}Spectators{default} cannot start voting"
+	}
+
+	"INVALID_ARGS"
+	{
+		"en"			"Attention! Use {olive}!slots <number>"
+	}
+
+	"SLOT_OUT_OF_BOUND"
+	{
+		"#format"		"{1:d}"
+		"en"			"The number of slots cannot be greater than {1}"
+	}
+
+	"SLOT_LESS_THAN_NECESSARY"
+	{
+		"#format"		"{1:d}"
+		"en"			"The number of slots cannot be less than {1}"
+	}
+
+	"MENU_TITLE"
+	{
+		"#format"		"{1:d}"
+		"ru"			"Изменять число слотов можно только на сервере без лобби.\nУдалить текущее лобби и установить число слотов равным {1}?\n"
+	}
+
+	"MENU_ITEM_YES"
+	{
+		"ru"			"Да"
+	}
+
+	"MENU_ITEM_NO"
+	{
+		"ru"			"Нет"
+	}
+
+	"ALREADY_UNRESERVE"
+	{
+		"ru"			"Лобби уже удалено"
+	}
+
+	"VOTE_COULDOWN"
+	{
+		"#format"		"{1:d}"
+		"ru"			"В данный момент невозможно объявить голосование. Повторите попытку через {1} секунд"
+	}
+
+	"VOTE_TITLE_UNRESERVE"
+	{
+		"#format"		"{1:d}"
+		"ru"			"Удалить лобби и установить число слотов равным {1}"
+	}
+
+	"VOTE_TITLE"
+	{
+		"#format"		"{1:d}"
+		"ru"			"Установить число слотов равным {1}"
+	}
+}
