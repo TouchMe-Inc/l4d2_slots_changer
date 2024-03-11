@@ -3,7 +3,7 @@
 
 #include <sourcemod>
 #include <nativevotes_rework>
-#include <left4dhooks>
+#include <lobby_control>
 #include <colors>
 
 
@@ -27,21 +27,29 @@ ConVar
 	g_cvMaxPlayerZombies = null
 ;
 
+bool g_bRestoreLobby = false;
+
 int g_iSlots = 0;
 int g_iNotConfirmSlots[MAXPLAYERS + 1] = {0, ...};
 
-
+/**
+ *
+ */
 public void OnPluginStart()
 {
 	LoadTranslations("slots_changer.phrases");
 
 	RegConsoleCmd("sm_slots", Cmd_SlotsChange);
+	RegConsoleCmd("sm_rslots", Cmd_ResetSlotsChange);
 
 	g_cvMaxSlots = CreateConVar("sm_max_slots", "24");
 	g_cvSurvivorLimit = FindConVar("survivor_limit");
 	g_cvMaxPlayerZombies = FindConVar("z_max_player_zombies");
 }
 
+/**
+ *
+ */
 public Action Cmd_SlotsChange(int iClient, int iArgs)
 {
 	if (!iClient) {
@@ -72,7 +80,7 @@ public Action Cmd_SlotsChange(int iClient, int iArgs)
 		return Plugin_Handled;
 	}
 
-	int iRequiredSlots = GetConVarInt(g_cvSurvivorLimit) + GetConVarInt(g_cvMaxPlayerZombies);
+	int iRequiredSlots = GetRequiredSlots();
 
 	if (iSlots < iRequiredSlots)
 	{
@@ -80,11 +88,25 @@ public Action Cmd_SlotsChange(int iClient, int iArgs)
 		return Plugin_Handled;
 	}
 
-	if (L4D_LobbyIsReserved()) {
+	if (IsLobbyReserved() > 0) {
 		ShowConfirmMenu(iClient, iSlots);
 	} else {
-		RunVote(iClient, iSlots);
+		RunVote(iClient, iSlots, false);
 	}
+
+	return Plugin_Handled;
+}
+
+/**
+ *
+ */
+public Action Cmd_ResetSlotsChange(int iClient, int iArgs)
+{
+	if (!iClient) {
+		return Plugin_Handled;
+	}
+
+	RunVote(iClient, GetRequiredSlots(), true);
 
 	return Plugin_Handled;
 }
@@ -101,10 +123,10 @@ void ShowConfirmMenu(int iClient, int iSlots)
 	char sName[64];
 
 	FormatEx(sName, sizeof(sName), "%T", "MENU_ITEM_YES", iClient);
-	AddMenuItem(hMenu, "yes", sName);
+	AddMenuItem(hMenu, "y", sName);
 
 	FormatEx(sName, sizeof(sName), "%T", "MENU_ITEM_NO", iClient);
-	AddMenuItem(hMenu, "no", sName);
+	AddMenuItem(hMenu, "n", sName);
 
 	g_iNotConfirmSlots[iClient] = iSlots;
 
@@ -122,26 +144,26 @@ int HandlerConfirmMenu(Menu hMenu, MenuAction hAction, int iClient, int iItem)
 
 		case MenuAction_Select:
 		{
-			char sAnswer[4]; GetMenuItem(hMenu, iItem, sAnswer, sizeof(sAnswer));
+			char sAnswer[1]; GetMenuItem(hMenu, iItem, sAnswer, sizeof(sAnswer));
 
 			if (sAnswer[0] == 'n') {
 				return 0;
 			}
 
-			if (!L4D_LobbyIsReserved())
+			if (IsLobbyReserved() < 1)
 			{
 				CPrintToChat(iClient, "%T%T", "TAG", iClient, "ALREADY_UNRESERVE", iClient);
 				return 0;
 			}
 
-			RunVote(iClient, g_iNotConfirmSlots[iClient]);
+			RunVote(iClient, g_iNotConfirmSlots[iClient], false);
 		}
 	}
 
 	return 0;
 }
 
-void RunVote(int iClient, int iSlots)
+void RunVote(int iClient, int iSlots, bool bRestoreLobby)
 {
 	if (!NativeVotes_IsNewVoteAllowed())
 	{
@@ -158,10 +180,11 @@ void RunVote(int iClient, int iSlots)
 			continue;
 		}
 
-		iPlayers[iTotalPlayers++] = iPlayer;
+		iPlayers[iTotalPlayers ++] = iPlayer;
 	}
 
 	g_iSlots = iSlots;
+	g_bRestoreLobby = bRestoreLobby;
 
 	NativeVote hVote = new NativeVote(HandlerVote, NativeVotesType_Custom_YesNo);
 	hVote.Initiator = iClient;
@@ -185,7 +208,7 @@ Action HandlerVote(NativeVote hVote, VoteAction tAction, int iParam1, int iParam
 		{
 			char sVoteDisplayMessage[128];
 
-			if (L4D_LobbyIsReserved()) {
+			if (IsLobbyReserved() > 0) {
 				FormatEx(sVoteDisplayMessage, sizeof(sVoteDisplayMessage), "%T", "VOTE_TITLE_UNRESERVE", iParam1, g_iSlots);
 			} else {
 				FormatEx(sVoteDisplayMessage, sizeof(sVoteDisplayMessage), "%T", "VOTE_TITLE", iParam1, g_iSlots);
@@ -208,11 +231,13 @@ Action HandlerVote(NativeVote hVote, VoteAction tAction, int iParam1, int iParam
 
 				return Plugin_Continue;
 			}
-
-			if (L4D_LobbyIsReserved()) {
-				L4D_LobbyUnreserve();
+			
+			if (g_bRestoreLobby) {
+				RestoreLobbyReservation();
+			} else {
+				DeleteLobbyReservation();
 			}
-
+			
 			SetConVarInt(FindConVar("sv_maxplayers"), g_iSlots);
 
 			hVote.DisplayPass();
@@ -231,3 +256,6 @@ bool IsClientSpectator(int iClient) {
 	return (GetClientTeam(iClient) == TEAM_SPECTATE);
 }
 
+int GetRequiredSlots() {
+	return (GetConVarInt(g_cvSurvivorLimit) + GetConVarInt(g_cvMaxPlayerZombies));
+}
