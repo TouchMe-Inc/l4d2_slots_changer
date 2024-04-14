@@ -11,8 +11,8 @@ public Plugin myinfo =
 {
 	name = "SlotsChanger",
 	author = "TouchMe",
-	description = "N/a",
-	version = "build0000",
+	description = "The plugin allows you to configure the initial number of slots and vote for increasing/decreasing slots",
+	version = "build0001",
 	url = "https://github.com/TouchMe-Inc/l4d2_slots_changer"
 }
 
@@ -22,14 +22,17 @@ public Plugin myinfo =
 #define VOTE_TIME               15
 
 ConVar
+	g_cvStartSlots = null,
 	g_cvMaxSlots = null,
+	g_cvMaxPlayers = null,
 	g_cvSurvivorLimit = null,
 	g_cvMaxPlayerZombies = null
 ;
 
-bool g_bRestoreLobby = false;
+bool g_bSlotChanged = false;
 
 int g_iSlots = 0;
+
 int g_iNotConfirmSlots[MAXPLAYERS + 1] = {0, ...};
 
 /**
@@ -40,11 +43,26 @@ public void OnPluginStart()
 	LoadTranslations("slots_changer.phrases");
 
 	RegConsoleCmd("sm_slots", Cmd_SlotsChange);
-	RegConsoleCmd("sm_rslots", Cmd_ResetSlotsChange);
 
+	g_cvStartSlots = CreateConVar("sm_start_slots", "12");
 	g_cvMaxSlots = CreateConVar("sm_max_slots", "24");
+
+	g_cvMaxPlayers = FindConVar("sv_maxplayers");
 	g_cvSurvivorLimit = FindConVar("survivor_limit");
 	g_cvMaxPlayerZombies = FindConVar("z_max_player_zombies");
+}
+
+public void OnPluginEnd() {
+	SetConVarInt(g_cvMaxPlayers, GetRequiredSlots());
+}
+
+public void OnConfigsExecuted()
+{
+	if (!g_bSlotChanged)
+	{
+		SetConVarInt(g_cvMaxPlayers, GetConVarInt(g_cvStartSlots));
+		g_bSlotChanged = true;
+	}
 }
 
 /**
@@ -91,22 +109,8 @@ public Action Cmd_SlotsChange(int iClient, int iArgs)
 	if (IsLobbyReserved() > 0) {
 		ShowConfirmMenu(iClient, iSlots);
 	} else {
-		RunVote(iClient, iSlots, false);
+		RunVote(iClient, iSlots);
 	}
-
-	return Plugin_Handled;
-}
-
-/**
- *
- */
-public Action Cmd_ResetSlotsChange(int iClient, int iArgs)
-{
-	if (!iClient) {
-		return Plugin_Handled;
-	}
-
-	RunVote(iClient, GetRequiredSlots(), true);
 
 	return Plugin_Handled;
 }
@@ -156,14 +160,14 @@ int HandlerConfirmMenu(Menu hMenu, MenuAction hAction, int iClient, int iItem)
 				return 0;
 			}
 
-			RunVote(iClient, g_iNotConfirmSlots[iClient], false);
+			RunVote(iClient, g_iNotConfirmSlots[iClient]);
 		}
 	}
 
 	return 0;
 }
 
-void RunVote(int iClient, int iSlots, bool bRestoreLobby)
+void RunVote(int iClient, int iSlots)
 {
 	if (!NativeVotes_IsNewVoteAllowed())
 	{
@@ -184,7 +188,6 @@ void RunVote(int iClient, int iSlots, bool bRestoreLobby)
 	}
 
 	g_iSlots = iSlots;
-	g_bRestoreLobby = bRestoreLobby;
 
 	NativeVote hVote = new NativeVote(HandlerVote, NativeVotesType_Custom_YesNo);
 	hVote.Initiator = iClient;
@@ -219,9 +222,7 @@ Action HandlerVote(NativeVote hVote, VoteAction tAction, int iParam1, int iParam
 			return Plugin_Changed;
 		}
 
-		case VoteAction_Cancel: {
-			hVote.DisplayFail();
-		}
+		case VoteAction_Cancel: hVote.DisplayFail();
 
 		case VoteAction_Finish:
 		{
@@ -231,14 +232,10 @@ Action HandlerVote(NativeVote hVote, VoteAction tAction, int iParam1, int iParam
 
 				return Plugin_Continue;
 			}
-			
-			if (g_bRestoreLobby) {
-				RestoreLobbyReservation();
-			} else {
-				DeleteLobbyReservation();
-			}
-			
-			SetConVarInt(FindConVar("sv_maxplayers"), g_iSlots);
+
+			DeleteLobbyReservation();
+
+			SetConVarInt(g_cvMaxPlayers, g_iSlots);
 
 			hVote.DisplayPass();
 		}
