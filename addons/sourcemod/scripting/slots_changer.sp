@@ -6,8 +6,7 @@
 #include <colors>
 
 
-public Plugin myinfo =
-{
+public Plugin myinfo = {
     name        = "SlotsChanger",
     author      = "TouchMe",
     description = "The plugin allows you to configure the initial number of slots and vote for increasing/decreasing slots",
@@ -31,7 +30,7 @@ ConVar
 
 bool g_bSlotChanged = false;
 
-int g_iSlots = 0;
+int g_iSlots = 4;
 
 
 /**
@@ -79,7 +78,7 @@ public void OnConfigsExecuted()
 /**
  *
  */
-public Action Cmd_SlotsChange(int iClient, int iArgs)
+Action Cmd_SlotsChange(int iClient, int iArgs)
 {
     if (!iClient) {
         return Plugin_Handled;
@@ -97,9 +96,9 @@ public Action Cmd_SlotsChange(int iClient, int iArgs)
         return Plugin_Handled;
     }
 
-    char sSlots[16]; GetCmdArg(1, sSlots, sizeof(sSlots));
+    char szSlots[16]; GetCmdArg(1, szSlots, sizeof(szSlots));
 
-    int iSlots = StringToInt(sSlots);
+    int iSlots = StringToInt(szSlots);
 
     int iMaxSlots = GetConVarInt(g_cvMaxSlots);
 
