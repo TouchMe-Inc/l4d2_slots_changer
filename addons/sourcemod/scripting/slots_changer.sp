@@ -96,7 +96,7 @@ Action Cmd_SlotsChange(int iClient, int iArgs)
         return Plugin_Handled;
     }
 
-    char szSlots[16]; GetCmdArg(1, szSlots, sizeof(szSlots));
+    char szSlots[16]; GetCmdArg(1, szSlots, sizeof szSlots);
 
     int iSlots = StringToInt(szSlots);
 
@@ -166,10 +166,7 @@ Action HandlerVote(NativeVote hVote, VoteAction tAction, int iParam1, int iParam
     {
         case VoteAction_Display:
         {
-            char sVoteDisplayMessage[128];
-            FormatEx(sVoteDisplayMessage, sizeof(sVoteDisplayMessage), "%T", "VOTE_TITLE", iParam1, g_iSlots);
-
-            hVote.SetDetails(sVoteDisplayMessage);
+            hVote.SetDetails("%T", "VOTE_TITLE", iParam1, g_iSlots);
 
             return Plugin_Changed;
         }
