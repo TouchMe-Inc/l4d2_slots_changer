@@ -1,41 +1,53 @@
 "Phrases"
 {
-	"TAG"
-	{
-		"ru"			"<{green}Slots Changer{default}> "
-	}
+    "TAG"
+    {
+        "ru"			"<{green}Slots Changer{default}> "
+    }
 
-	"INVALID_TEAM"
-	{
-		"ru"			"{olive}Зрители{default} не могут начать голосование"
-	}
+    "INVALID_TEAM"
+    {
+        "ru"			"{olive}Зрители{default} не могут начать голосование"
+    }
 
-	"INVALID_ARGS"
-	{
-		"ru"			"Внимание! Используйте {olive}!slots <number>"
-	}
+    "INVALID_ARGS"
+    {
+        "ru"			"Внимание! Используйте {olive}!slots <number>"
+    }
 
-	"SLOT_OUT_OF_BOUND"
-	{
-		"#format"		"{1:d}"
-		"ru"			"Количество слотов не может быть больше {1}"
-	}
+    "SLOT_OUT_OF_BOUND"
+    {
+        "#format"		"{1:d}"
+        "ru"			"Количество слотов не может быть больше {1}"
+    }
 
-	"SLOT_LESS_THAN_NECESSARY"
-	{
-		"#format"		"{1:d}"
-		"ru"			"Количество слотов не может быть меньше {1}"
-	}
+    "SLOT_LESS_THAN_NECESSARY"
+    {
+        "#format"		"{1:d}"
+        "ru"			"Количество слотов не может быть меньше {1}"
+    }
 
-	"VOTE_COULDOWN"
-	{
-		"#format"		"{1:d}"
-		"ru"			"В данный момент невозможно объявить голосование. Повторите попытку через {1} секунд"
-	}
+    "SLOT_BY_VOTE"
+    {
+        "#format"		"{1:d}"
+        "ru"			"Установлено голосованием слотов: {olive}{1}"
+    }
 
-	"VOTE_TITLE"
-	{
-		"#format"		"{1:d}"
-		"ru"			"Установить число слотов равным {1}"
-	}
+    "SLOT_BY_ADMIN"
+    {
+        "#format"		"{1:d}"
+        "ru"			"Установлено администратором слотов: {olive}{1}"
+    }
+
+    "VOTE_COULDOWN"
+    {
+        "#format"		"{1:d}"
+        "ru"			"В данный момент невозможно объявить голосование. Повторите попытку через {1} секунд"
+    }
+
+    "VOTE_TITLE"
+    {
+        "#format"		"{1:d}"
+        "ru"			"Установить число слотов равным {1}"
+    }
 }

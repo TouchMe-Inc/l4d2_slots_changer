@@ -10,7 +10,7 @@ public Plugin myinfo = {
     name        = "SlotsChanger",
     author      = "TouchMe",
     description = "The plugin allows you to configure the initial number of slots and vote for increasing/decreasing slots",
-    version     = "build_0002",
+    version     = "build_0003",
     url         = "https://github.com/TouchMe-Inc/l4d2_slots_changer"
 }
 
@@ -30,7 +30,7 @@ ConVar
 
 bool g_bSlotChanged = false;
 
-int g_iSlots = 4;
+int g_iVoteSlots = 4;
 
 
 /**
@@ -84,15 +84,17 @@ Action Cmd_SlotsChange(int iClient, int iArgs)
         return Plugin_Handled;
     }
 
-    if (IsClientSpectator(iClient))
-    {
-        CPrintToChat(iClient, "%T%T", "TAG", iClient, "INVALID_TEAM", iClient);
-        return Plugin_Handled;
-    }
-
     if (iArgs != 1)
     {
         CPrintToChat(iClient, "%T%T", "TAG", iClient, "INVALID_ARGS", iClient);
+        return Plugin_Handled;
+    }
+
+    bool bIsAdmin = (GetUserFlagBits(iClient) & (ADMFLAG_GENERIC | ADMFLAG_ROOT)) != 0;
+
+    if (IsClientSpectator(iClient) && !bIsAdmin)
+    {
+        CPrintToChat(iClient, "%T%T", "TAG", iClient, "INVALID_TEAM", iClient);
         return Plugin_Handled;
     }
 
@@ -116,7 +118,12 @@ Action Cmd_SlotsChange(int iClient, int iArgs)
         return Plugin_Handled;
     }
 
-    RunChangeSlotVote(iClient, iSlots);
+    if (bIsAdmin) {
+        SetConVarIntSilence(g_cvMaxPlayers, iSlots);
+        CPrintToChatAll("%t%t", "TAG", "SLOT_BY_ADMIN", iSlots);
+    } else {
+        RunChangeSlotVote(iClient, iSlots);
+    }
 
     return Plugin_Handled;
 }
@@ -144,7 +151,7 @@ void RunChangeSlotVote(int iClient, int iSlots)
         iPlayers[iTotalPlayers ++] = iPlayer;
     }
 
-    g_iSlots = iSlots;
+    g_iVoteSlots = iSlots;
 
     NativeVote hVote = new NativeVote(HandlerVote, NativeVotesType_Custom_YesNo);
     hVote.Initiator = iClient;
@@ -166,7 +173,7 @@ Action HandlerVote(NativeVote hVote, VoteAction tAction, int iParam1, int iParam
     {
         case VoteAction_Display:
         {
-            hVote.SetDetails("%T", "VOTE_TITLE", iParam1, g_iSlots);
+            hVote.SetDetails("%T", "VOTE_TITLE", iParam1, g_iVoteSlots);
 
             return Plugin_Changed;
         }
@@ -182,7 +189,8 @@ Action HandlerVote(NativeVote hVote, VoteAction tAction, int iParam1, int iParam
                 return Plugin_Continue;
             }
 
-            SetConVarInt(g_cvMaxPlayers, g_iSlots);
+            SetConVarIntSilence(g_cvMaxPlayers, g_iVoteSlots);
+            CPrintToChatAll("%t%t", "TAG", "SLOT_BY_VOTE", g_iVoteSlots);
 
             hVote.DisplayPass();
         }
@@ -201,6 +209,14 @@ Action HandlerVote(NativeVote hVote, VoteAction tAction, int iParam1, int iParam
  */
 bool IsClientSpectator(int iClient) {
     return (GetClientTeam(iClient) == TEAM_SPECTATE);
+}
+
+void SetConVarIntSilence(ConVar convar, int iValue)
+{
+    int iFlags = GetConVarFlags(convar);
+    SetConVarFlags(convar, iFlags & ~FCVAR_NOTIFY);
+    SetConVarInt(convar, iValue);
+    SetConVarFlags(convar, iFlags);
 }
 
 /**
